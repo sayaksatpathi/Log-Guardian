@@ -27,7 +27,7 @@ Log-Guardian is the **CLI-first flagship** for offline log-integrity checks and 
 
 The companion [Evidence Protector repository](https://github.com/sayaksatpathi/Evidence_protector) packages the same engine for a full-stack distribution with a FastAPI backend, web UI, Docker Compose, and release-evidence tooling. The repositories currently mirror some Python engine modules; they are not intended to evolve into two unrelated implementations of the same core.
 
-**Maintenance rule:** Make changes to shared integrity and forensic-engine modules in Log-Guardian first, then mirror the relevant changes into Evidence Protector and run its CLI/API/UI integration tests. Keep UI, API, Docker deployment, and release-packaging changes specific to Evidence Protector.
+**Maintenance rule:** Log-Guardian is the source of truth for the shared integrity and forensic-engine package. Evidence Protector should consume a pinned Git commit of this package instead of carrying a second copy of `src/evidence_protector/`. When shared-engine behavior changes, update Log-Guardian, then deliberately bump the dependency pin in Evidence Protector and run its CLI/API/UI integration tests. Keep UI, API, Docker deployment, and release-packaging code specific to Evidence Protector.
 
 ## 🔍 What It Detects
 
