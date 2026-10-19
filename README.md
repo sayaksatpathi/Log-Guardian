@@ -23,11 +23,11 @@
 
 ## Project relationship
 
-Log-Guardian is the **CLI-first flagship** for offline log-integrity checks and Ghost Protocol forensic analysis. It combines the shared `evidence_protector` integrity engine with baseline-based behavioral analysis, filesystem receipts, cross-signal correlation, and witnessable commitments.
+Log-Guardian is the **canonical source and CLI-first flagship** for offline log-integrity checks and Ghost Protocol forensic analysis. It owns the `evidence_protector` engine, including baseline-based behavioral analysis, filesystem receipts, cross-signal correlation, and witnessable commitments.
 
-The companion [Evidence Protector repository](https://github.com/sayaksatpathi/Evidence_protector) packages the same engine for a full-stack distribution with a FastAPI backend, web UI, Docker Compose, and release-evidence tooling. The repositories currently mirror some Python engine modules; they are not intended to evolve into two unrelated implementations of the same core.
+The companion [Evidence Protector repository](https://github.com/sayaksatpathi/Evidence_protector) is the full-stack distribution. It installs this engine from an immutable Log-Guardian commit and adds a FastAPI backend, web UI, Docker Compose deployment, and release-evidence tooling. The engine implementation is maintained here rather than copied into the companion repository.
 
-**Maintenance rule:** Log-Guardian is the source of truth for the shared integrity and forensic-engine package. Evidence Protector should consume a pinned Git commit of this package instead of carrying a second copy of `src/evidence_protector/`. When shared-engine behavior changes, update Log-Guardian, then deliberately bump the dependency pin in Evidence Protector and run its CLI/API/UI integration tests. Keep UI, API, Docker deployment, and release-packaging code specific to Evidence Protector.
+**Maintenance rule:** Make shared integrity and forensic-engine changes here first. Once validated, update the immutable commit pin in Evidence Protector's `pyproject.toml` and `requirements.txt`, then run its Python, API/UI integration, Docker, and security checks. Keep full-stack UI, API, deployment, and release-packaging code specific to Evidence Protector.
 
 ## 🔍 What It Detects
 
