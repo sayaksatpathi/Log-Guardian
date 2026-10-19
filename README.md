@@ -21,6 +21,14 @@
 1. **Evidence Protector** — the integrity core: streaming scans of huge files, multi-format timestamp parsing, suspicious time-gap detection, and output in terminal, CSV, or JSON.
 2. **Ghost Protocol** — a forensic-heuristics layer that asks whether a log's *timeline is plausible*, whether its *rhythm or character "DNA" shifted* versus a baseline, and whether *filesystem receipts contradict the narrative*.
 
+## Project relationship
+
+Log-Guardian is the **CLI-first flagship** for offline log-integrity checks and Ghost Protocol forensic analysis. It combines the shared `evidence_protector` integrity engine with baseline-based behavioral analysis, filesystem receipts, cross-signal correlation, and witnessable commitments.
+
+The companion [Evidence Protector repository](https://github.com/sayaksatpathi/Evidence_protector) packages the same engine for a full-stack distribution with a FastAPI backend, web UI, Docker Compose, and release-evidence tooling. The repositories currently mirror some Python engine modules; they are not intended to evolve into two unrelated implementations of the same core.
+
+**Maintenance rule:** Make changes to shared integrity and forensic-engine modules in Log-Guardian first, then mirror the relevant changes into Evidence Protector and run its CLI/API integration tests. Keep UI, API, Docker deployment, and release-packaging changes specific to Evidence Protector.
+
 ## 🔍 What It Detects
 
 | Signal | Meaning |
