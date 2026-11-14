@@ -5,11 +5,11 @@ services:
     hostname: soc-lab-splunk
     restart: unless-stopped
     environment:
-      SPLUNK_START_ARGS: --accept-license
+      SPLUNK_START_ARGS: ${SPLUNK_START_ARGS:-}
       SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:?Set SPLUNK_PASSWORD in SOC-Lab/splunk/.env}
-      SPLUNK_GENERAL_TERMS: --accept-sgt-current-at-splunk-com
+      SPLUNK_GENERAL_TERMS: ${SPLUNK_GENERAL_TERMS:-}
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:18000:8000"
       - "127.0.0.1:8088:8088"
       - "127.0.0.1:8089:8089"
       - "127.0.0.1:9997:9997"
