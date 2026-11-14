@@ -11,7 +11,7 @@ This record reflects checks performed on the attached Windows/WSL2 host. It sepa
 - The WSL agent service was active at the earlier check.
 - Splunk has not been started or its license accepted.
 
-## Current state and outstanding work\n\n- At 18:08 UTC, Docker service failed after WSL left a stale, unreadable `/run/docker.pid`. A subsequent Docker socket activation failed with status `7/BUS`. The Docker CLI currently cannot connect to its daemon.\n- The attached browser reports `ERR_CONNECTION_REFUSED` for `127.0.0.1:8443`; the dashboard is not currently reachable. The earlier HTTP 302 check was from inside WSL and did not prove Windows browser access.\n\n
+## Current state and outstanding work\n\n- Docker and all previously running containers were restored by restarting Ubuntu WSL. The transient `vm.max_map_count` kernel setting was reapplied.\n- Windows `curl` now receives HTTP 302 from `https://127.0.0.1:8443/`, and the Wazuh manager again lists the Ubuntu WSL agent as Active. The browser page shown earlier was captured while Docker was down; refresh now reaches the dashboard endpoint, whose self-signed certificate still requires a user browser handoff.\n\n
 
 - Ubuntu WSL is connected and Active. This satisfies the Linux/Ubuntu endpoint requirement for this lab; it is specifically a WSL endpoint, not a separate VM.
 - No Windows Wazuh agent is registered. The current Windows account lacks Administrator elevation, required for the agent MSI and audit policy. The attempt to launch the elevated installer was rejected by the command approval policy before execution.
