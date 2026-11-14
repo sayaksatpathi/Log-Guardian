@@ -50,7 +50,15 @@ index=main (sourcetype=linux_secure OR sourcetype=syslog) ("Failed password" OR 
 | convert ctime(first_seen) ctime(last_seen)
 | sort - failures
 
-# 8) Dashboard panel: authentication outcomes over time
+# 8) Remote interactive Windows logons (4624, Logon Type 10)
+# Triage the account, source, host, and approved remote access context.
+index=main (EventCode=4624 OR EventID=4624)
+| eval logon_type=tonumber(coalesce(LogonType, Logon_Type))
+| where logon_type=10
+| table _time host TargetUserName IpAddress LogonType Logon_Type Message
+| sort - _time
+
+# Dashboard panel: authentication outcomes over time (not an alert)
 index=main (EventCode=4624 OR EventCode=4625 OR EventID=4624 OR EventID=4625)
 | eval outcome=if(tonumber(coalesce(EventCode,EventID))=4625,"Failure","Success")
 | timechart span=15m count by outcome
