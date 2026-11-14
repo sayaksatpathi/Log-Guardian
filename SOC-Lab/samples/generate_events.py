@@ -22,14 +22,16 @@ def add(minutes: int, event_id: int, user: str, host: str, source: str, message:
         "TargetUserName": user,
         "Computer": host,
         "IpAddress": source,
+        "LogonType": 10 if event_id == 4624 else "",
         "Message": message,
         "Simulation": True,
     })
 
-# Six failed attempts followed by a successful sign-in from the same fictional source.
+# Six failed attempts followed by a synthetic remote interactive logon from the
+# same fictional source. This exercises both the correlation and logon-type rules.
 for m in (18, 16, 14, 12, 10, 8):
     add(m, 4625, "lab.user", "WIN-LAB01", "192.0.2.55", "Synthetic failed logon")
-add(6, 4624, "lab.user", "WIN-LAB01", "192.0.2.55", "Synthetic successful logon; investigate context")
+add(6, 4624, "lab.user", "WIN-LAB01", "192.0.2.55", "Synthetic successful remote interactive logon")
 
 add(5, 4720, "new.labuser", "WIN-LAB01", "127.0.0.1", "Synthetic account creation")
 add(4, 4732, "new.labuser", "WIN-LAB01", "127.0.0.1", "Synthetic local group membership change")
