@@ -1,0 +1,9 @@
+scenario,observable,technique_id,technique_name,tactic,confidence_note
+Password guessing,Repeated authentication failures,T1110,Brute Force,Credential Access,Pattern is consistent with brute force; validate source and account context
+Phishing execution,User reports suspicious email and attachment process telemetry,T1566.001,Spearphishing Attachment,Initial Access,Use only if email/attachment evidence supports it
+Phishing execution,User reports credential-harvesting page,T1566.002,Spearphishing Link,Initial Access,Click or URL evidence alone may not prove credential theft
+Suspicious PowerShell,Unexpected PowerShell command execution,T1059.001,PowerShell,Execution,Review script content parent process user and host baseline
+Malware execution,Unexpected executable launched from user-writable path,T1204.002,Malicious File Execution,Execution,Requires file reputation/hash and endpoint evidence before malware conclusion
+Suspicious successful login,Valid account used from unusual context,T1078,Valid Accounts,Initial Access; Persistence; Privilege Escalation; Defense Evasion,Anomalous login is not proof of stolen credentials
+Privilege escalation,Unexpected privileged group membership change,T1098,Account Manipulation,Persistence; Privilege Escalation,Confirm group and account are security-relevant
+Log tampering,Security event log cleared,T1070.001,Clear Windows Event Logs,Defense Evasion,Event 1102 warrants investigation but may be authorised maintenance

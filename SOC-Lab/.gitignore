@@ -1,0 +1,14 @@
+# Local SOC lab exports and sensitive telemetry
+soc-event-export/
+*.evtx
+*.etl
+*.pcap
+*.pcapng
+*.har
+*.log
+*.splunk
+*.key
+*.pem
+.env
+.env.*
+!*.example

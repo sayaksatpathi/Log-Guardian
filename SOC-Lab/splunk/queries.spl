@@ -1,0 +1,56 @@
+# SOC-Lab SPL detection templates
+# Adjust index, sourcetype, and field names to match your Splunk input/add-on.
+# Validate every search against your own sample events before enabling alerts.
+
+# 1) Failed Windows logons by account and source (Event ID 4625)
+index=main (EventCode=4625 OR EventID=4625)
+| eval account=coalesce(TargetUserName, Account_Name, user, SubjectUserName)
+| eval src=coalesce(IpAddress, Source_Network_Address, src_ip, SourceAddress)
+| stats count as failures min(_time) as first_seen max(_time) as last_seen values(Computer) as hosts by account src
+| where failures >= 5
+| convert ctime(first_seen) ctime(last_seen)
+| sort - failures
+
+# 2) Possible brute force followed by a successful logon from same source/account
+index=main (EventCode=4625 OR EventCode=4624 OR EventID=4625 OR EventID=4624)
+| eval event_id=tonumber(coalesce(EventCode, EventID, event_id))
+| eval account=coalesce(TargetUserName, Account_Name, user, SubjectUserName)
+| eval src=coalesce(IpAddress, Source_Network_Address, src_ip, SourceAddress)
+| stats count(eval(event_id=4625)) as failures count(eval(event_id=4624)) as successes min(_time) as first_seen max(_time) as last_seen by account src
+| where failures >= 5 AND successes >= 1
+| convert ctime(first_seen) ctime(last_seen)
+
+# 3) New local account creation (Event ID 4720)
+index=main (EventCode=4720 OR EventID=4720)
+| table _time host SubjectUserName TargetUserName EventCode Message
+| sort - _time
+
+# 4) Privileged group membership changes (4728 global, 4732 local)
+index=main (EventCode=4728 OR EventCode=4732 OR EventID=4728 OR EventID=4732)
+| eval changed_group=coalesce(TargetUserName, Group_Name, group)
+| eval added_user=coalesce(MemberName, Member_Name, member)
+| table _time host SubjectUserName changed_group added_user EventCode Message
+| sort - _time
+
+# 5) PowerShell script block logging (Event ID 4104)
+index=main (EventCode=4104 OR EventID=4104)
+| eval script=coalesce(ScriptBlockText, Message, Payload)
+| table _time host UserID Account_Name script
+| sort - _time
+
+# 6) Security audit log cleared (Event ID 1102)
+index=main (EventCode=1102 OR EventID=1102)
+| table _time host SubjectUserName Message
+| sort - _time
+
+# 7) Linux SSH authentication failures (field names depend on syslog parsing)
+index=main (sourcetype=linux_secure OR sourcetype=syslog) ("Failed password" OR "authentication failure")
+| stats count as failures min(_time) as first_seen max(_time) as last_seen by host user src
+| where failures >= 5
+| convert ctime(first_seen) ctime(last_seen)
+| sort - failures
+
+# 8) Dashboard panel: authentication outcomes over time
+index=main (EventCode=4624 OR EventCode=4625 OR EventID=4624 OR EventID=4625)
+| eval outcome=if(tonumber(coalesce(EventCode,EventID))=4625,"Failure","Success")
+| timechart span=15m count by outcome
