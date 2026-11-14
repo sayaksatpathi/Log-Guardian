@@ -1,56 +1,68 @@
 # SOC Lab deployment runbook
 
-This runbook describes deployment and validation. It does not claim that software has already been installed or telemetry validated on your machines.
+This runbook makes deployment and validation repeatable. It does not claim software is installed or live telemetry validated. Use disposable VMs and systems you own or are authorised to monitor.
 
-## Safety and topology
+## Requirements and topology
 
-- Use disposable Windows and Ubuntu VMs on a host-only or isolated NAT network.
-- Keep SIEM management ports private; never expose them to the public internet.
-- Take VM snapshots before exercises. Use only systems you own or are authorised to monitor.
-- Keep credentials, agent keys, raw event exports and private IP details out of GitHub.
+Use an isolated host-only or NAT network. Never expose SIEM management services publicly. A small Wazuh all-in-one VM should start around 4 vCPU, 8 GiB RAM, and 50 GB disk; check current vendor docs before deployment. Keep VM snapshots before exercises. Keep credentials, agent keys, raw exports, and private IP details out of GitHub.
 
-## 1. Deploy Wazuh
+## 1. Deploy Wazuh on Ubuntu
 
-Follow the current official Quickstart because supported OS releases and package versions change: https://documentation.wazuh.com/current/quickstart.html
+On a fresh supported Ubuntu Server VM, follow the [official Wazuh Quickstart](https://documentation.wazuh.com/current/quickstart.html). It installs the server, indexer, and dashboard on one host. Confirm supported OS and resource requirements before proceeding.
 
-1. Create an Ubuntu Server VM for the Wazuh all-in-one deployment.
-2. Follow the official installation assistant instructions for your Ubuntu release.
-3. Record the manager address and dashboard URL in a private notebook.
-4. In the dashboard, open Agents > Deploy new agent and generate the command for each endpoint.
-5. Install the generated agent on your Windows and Ubuntu VMs.
-6. Confirm both agents show Active before generating test events.
+```bash
+sudo apt-get update
+sudo apt-get install -y curl
+curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
+sudo bash ./wazuh-install.sh -a
+```
 
-Validation means you can identify each agent and see its expected endpoint events in the Wazuh dashboard. An installed agent alone is not enough.
+The assistant prints the dashboard URL and credentials. Save them privately. Never commit the generated password archive. Open the dashboard from the isolated network. Follow vendor guidance for its first-login certificate; do not bypass certificate warnings on public services. If the documented release changes, use the version and URL shown by current official docs.
 
-## 2. Start Splunk with Docker
+## 2. Enrol Windows and Ubuntu agents
+
+In Wazuh select **Agents management → Summary → Deploy new agent**. Choose the endpoint OS and copy the generated commands for your manager. Do not put environment-specific keys or passwords in this repository.
+
+- Windows: run the official MSI installation command in elevated PowerShell on the disposable VM and start the Wazuh service. See [Windows agent deployment](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-windows.html).
+- Ubuntu: install from the official Wazuh APT repository with the manager address, then enable and start wazuh-agent. See [Linux agent deployment](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-linux.html).
+
+Use [wazuh/agent-ossec.conf](wazuh/agent-ossec.conf) only as a reference. Merge relevant log collection blocks into each endpoint's existing configuration; do not replace the full config. Windows channels belong on Windows; Linux file paths belong on Ubuntu. Confirm paths exist.
+
+**Pass condition:** both agents show **Active**. Generate a benign test event on each and confirm it appears with the correct agent name and timestamp. An installed service alone does not pass.
+
+## 3. Windows audit policy and event export
+
+On the disposable Windows VM, review [windows/Enable-SOC-Auditing.ps1](windows/Enable-SOC-Auditing.ps1), then run it from elevated PowerShell. It changes local audit policy. Verify with:
+
+```powershell
+auditpol /get /category:*
+```
+
+For process command-line capture, use the local policy path printed by the script. Command lines can contain secrets. Export a bounded event window:
+
+```powershell
+.\windows\Export-SecurityEvents.ps1 -HoursBack 2 -OutputDirectory .\evidence-private
+```
+
+The export contains sensitive event data and XML. Keep it local and sanitise a copy before sharing. Never commit raw Security.evtx or unredacted exports.
+
+## 4. Start Splunk
 
 From SOC-Lab/splunk:
 
 ```bash
 cp .env.example .env
-# Edit .env and set a unique strong SPLUNK_PASSWORD.
+# Replace SPLUNK_PASSWORD with a strong unique password; keep .env private.
 docker compose up -d
 docker compose ps
 docker compose logs -f splunk
 ```
 
-Open http://localhost:8000 and sign in as admin with the password in your private .env file. Initial startup can take several minutes.
+Open http://localhost:8000 and sign in as admin. Initial startup may take several minutes. Compose ports bind to loopback by default. For endpoints in separate VMs, deliberately configure a reachable host-only interface and firewall rule; do not bind management or receiving ports publicly.
 
-Stop without deleting indexed data:
+Stop without deleting data using docker compose down. Removing volumes with docker compose down -v permanently deletes Splunk lab state.
 
-```bash
-docker compose down
-```
-
-Remove the persistent lab data too (destructive):
-
-```bash
-docker compose down -v
-```
-
-Do not expose ports 8089 or 9997 to an untrusted network. The compose file uses persistent Docker volumes for Splunk state.
-
-## 3. Generate synthetic events
+## 5. Import and validate synthetic events
 
 From the repository root:
 
@@ -58,27 +70,39 @@ From the repository root:
 python SOC-Lab/samples/generate_events.py
 ```
 
-The output is synthetic practice data, not real endpoint telemetry. Import it into a dedicated lab index and set the correct sourcetype. Then run the searches in splunk/queries.spl individually.
+Generated identities and events are fictional practice data, not endpoint telemetry. Import CSV or JSON into a disposable index. Configure timestamps and extraction for fields such as EventCode, TargetUserName, IpAddress, and Computer. If Splunk extracts different names, adapt [splunk/queries.spl](splunk/queries.spl).
 
-SPL field names vary by input method and sourcetype. Inspect the imported events and adjust field names as needed. A query is validated only when it returns expected rows and a benign/negative test behaves as expected.
+Run all eight searches individually. Record time range, result count, and field mapping changes. The synthetic data supports Windows logon, account creation, group membership, PowerShell, and log clearing searches. The Linux SSH detection requires Linux authentication events; Windows-only synthetic events cannot validate it.
 
-## 4. Validate Windows auditing
+Searches in [splunk/savedsearches.conf](splunk/savedsearches.conf) are disabled by default. Import only after verifying SPL and field extraction. Enable a scheduled alert only after a positive test returns the expected result and a benign negative test does not fire. For three alert examples, record test event, observed result, and time.
 
-Inside the disposable Windows VM, review the PowerShell scripts before running them. Run as Administrator only in that VM. Verify policy settings with:
+Record search title, SPL, index/sourcetype, test data ID, expected and observed result, timestamp, and disposition. A successful search execution alone is not validation.
 
-```powershell
-auditpol /get /category:*
-```
+## 6. Evidence and screenshots
 
-Confirm expected event IDs appear in Event Viewer before exporting. Sanitise exported data before using it in reports; never upload raw Security.evtx or unredacted logs.
+Capture evidence only from the running lab. Keep unredacted originals privately; create redacted portfolio copies. Show enough context to identify platform, result, and timestamp while hiding usernames, hostnames, private addresses, keys, passwords, tokens, and unrelated personal data. Use actual screenshots and event identifiers. Never present mock screenshots or synthetic events as live telemetry.
 
-## 5. Evidence required before marking complete
+Minimum evidence:
 
-- Wazuh: dashboard screenshot showing both agents Active and a timestamped event.
-- Windows: audit policy verification and a sanitised event record.
-- Splunk: results for all eight searches and three tested alert examples.
-- ATT&CK: mapping rationale tied to observed behaviour, with confidence and limitations.
-- Incident reports: evidence IDs, timestamps, analyst actions and disposition; simulated scenarios remain labelled simulated.
-- Portfolio: screenshots with usernames, IPs, tokens and other sensitive details redacted.
+1. Wazuh agent inventory with both endpoints Active and a recent event from each.
+2. Windows audit policy verification and one sanitised event.
+3. Results for all eight SPL searches, including Linux authentication data for its rule.
+4. Three tested alerts with positive and negative results.
+5. ATT&CK rationale tied to observed events, confidence, and limitations.
+6. One incident report based on observed, sanitised lab evidence, with evidence IDs and analyst actions.
 
-A running container or installed package does not prove end-to-end telemetry. Validate the complete path from event generation to SIEM search result.
+## Completion gate
+
+- [ ] Wazuh dashboard reachable on isolated lab network
+- [ ] Windows and Ubuntu agents both Active
+- [ ] Timestamped event from each agent visible in Wazuh
+- [ ] Windows audit policy verified and bounded export reviewed
+- [ ] Splunk running with private credentials and imported data
+- [ ] Eight SPL detections tested against suitable positive data
+- [ ] Benign negative test completed for each alert
+- [ ] Three alerts tested and documented
+- [ ] ATT&CK mapping checked against current knowledge base
+- [ ] One report completed using observed, sanitised lab evidence
+- [ ] Genuine screenshots captured and redacted
+
+Keep this checklist open until each item has evidence from the running environment.
