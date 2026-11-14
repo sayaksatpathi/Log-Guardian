@@ -2,6 +2,10 @@
 
 This runbook makes deployment and validation repeatable. It does not claim software is installed or live telemetry validated. Use disposable VMs and systems you own or are authorised to monitor.
 
+## Current execution status
+
+A host-side validation record is maintained at [evidence/live-validation-2026-11-14.md](evidence/live-validation-2026-11-14.md). On that date, Wazuh manager/indexer/dashboard were running in Docker under WSL2, the local dashboard HTTPS endpoint returned HTTP 302, and one WSL Linux agent was Active. This is not evidence of a separate Ubuntu VM or Windows agent. Splunk and its searches were not run. Windows setup requires elevated PowerShell, which was unavailable to the attached non-administrator account. The completion checklist below remains evidence-gated.
+
 ## Requirements and topology
 
 Use an isolated host-only or NAT network. Never expose SIEM management services publicly. A small Wazuh all-in-one VM should start around 4 vCPU, 8 GiB RAM, and 50 GB disk; check current vendor docs before deployment. Keep VM snapshots before exercises. Keep credentials, agent keys, raw exports, and private IP details out of GitHub.
