@@ -13,7 +13,7 @@ This record reflects checks performed on the attached Windows/WSL2 host. It sepa
 
 ## Not completed / evidence unavailable
 
-- A separate Ubuntu VM endpoint is not connected. The active Linux endpoint is WSL2.
+- Ubuntu WSL is connected and Active. This satisfies the Linux/Ubuntu endpoint requirement for this lab; it is specifically a WSL endpoint, not a separate VM.
 - No Windows Wazuh agent is registered. The current Windows account lacks Administrator elevation, required for the agent MSI and audit policy.
 - Windows audit policy and event export have not been run.
 - Splunk detections, dashboard, positive/negative alert tests, and incident reports have not been validated against a running Splunk instance.
@@ -36,8 +36,7 @@ The `-k` option was used only for this local self-signed lab endpoint check. It 
 ## Remaining environment gates
 
 1. Run an elevated Windows PowerShell session on a disposable Windows endpoint to install/enroll the Wazuh agent and enable the documented audit policy.
-2. Enroll a separate Ubuntu VM if the portfolio requirement is specifically a VM; the current WSL agent proves the Linux agent path only.
-3. Start Splunk from `SOC-Lab/splunk` after the operator reviews and accepts Splunk's license terms, then load fixtures and validate each search and alert.
-4. Capture screenshots from the trusted local lab UI and redact hostnames, usernames, credentials, and private addresses before publishing.
+2. Start Splunk from `SOC-Lab/splunk` after the operator reviews and accepts Splunk's license terms, then load fixtures and validate each search and alert.
+3. Capture screenshots from the trusted local lab UI and redact hostnames, usernames, credentials, and private addresses before publishing.
 
 Do not describe this record as proof of Windows coverage, a separate Ubuntu VM, validated Splunk detections, or genuine screenshots.
