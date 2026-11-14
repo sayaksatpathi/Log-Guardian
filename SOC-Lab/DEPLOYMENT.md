@@ -4,7 +4,7 @@ This runbook makes deployment and validation repeatable. It does not claim softw
 
 ## Current execution status
 
-A host-side validation record is maintained at [evidence/live-validation-2026-11-14.md](evidence/live-validation-2026-11-14.md). On that date, Wazuh manager/indexer/dashboard were running in Docker under WSL2, the local dashboard HTTPS endpoint returned HTTP 302, and one WSL Linux agent was Active. This is not evidence of a separate Ubuntu VM or Windows agent. Splunk and its searches were not run. Windows setup requires elevated PowerShell, which was unavailable to the attached non-administrator account. The completion checklist below remains evidence-gated.
+A host-side validation record is maintained at [evidence/live-validation-2026-11-14.md](evidence/live-validation-2026-11-14.md). On that date, Wazuh manager/indexer/dashboard were running in Docker under WSL2, the local dashboard HTTPS endpoint returned HTTP 302, and one WSL Linux agent was Active. Ubuntu WSL is the lab's Ubuntu endpoint, so this satisfies the Ubuntu-agent requirement. The synthetic SSH failure was decoded by Wazuh rule 5710 using wazuh-logtest, but a forwarded alert was not confirmed. There is no Windows agent yet; the attached Windows account is non-administrator. Splunk searches have not been run. The completion checklist below remains evidence-gated.
 
 ## Requirements and topology
 
@@ -36,7 +36,7 @@ Use [wazuh/agent-ossec.conf](wazuh/agent-ossec.conf) only as a reference. Merge 
 
 ## 3. Windows audit policy and event export
 
-On the disposable Windows VM, review [windows/Enable-SOC-Auditing.ps1](windows/Enable-SOC-Auditing.ps1), then run it from elevated PowerShell. It changes local audit policy. Verify with:
+On the disposable Windows VM, review [windows/Enable-SOC-Auditing.ps1](windows/Enable-SOC-Auditing.ps1) and [windows/Install-WazuhAgent.ps1](windows/Install-WazuhAgent.ps1), then run it from elevated PowerShell. It changes local audit policy. Verify with:
 
 ```powershell
 auditpol /get /category:*
@@ -52,7 +52,9 @@ The export contains sensitive event data and XML. Keep it local and sanitise a c
 
 ## 4. Start Splunk
 
-From SOC-Lab/splunk:
+Before startup, the operator must read and accept Splunk's current [General Terms](https://www.splunk.com/en_us/legal/splunk-general-terms.html) and applicable [software license agreement](https://www.splunk.com/en_us/legal/splunk-software-license-agreement-bah.html). Splunk 10.x Docker startup requires flags that explicitly represent that acceptance; they are intentionally commented out in `.env.example`. Do not enable them unless you personally accept the terms.
+
+The compose file maps Splunk Web to `http://localhost:18000` because port 8000 was already occupied on the validated host. Other ports are loopback-bound. From SOC-Lab/splunk:
 
 ```bash
 cp .env.example .env
@@ -62,7 +64,7 @@ docker compose ps
 docker compose logs -f splunk
 ```
 
-Open http://localhost:8000 and sign in as admin. Initial startup may take several minutes. Compose ports bind to loopback by default. For endpoints in separate VMs, deliberately configure a reachable host-only interface and firewall rule; do not bind management or receiving ports publicly.
+Open http://localhost:18000 and sign in as admin. Initial startup may take several minutes. Compose ports bind to loopback by default. For endpoints in separate VMs, deliberately configure a reachable host-only interface and firewall rule; do not bind management or receiving ports publicly.
 
 Stop without deleting data using docker compose down. Removing volumes with docker compose down -v permanently deletes Splunk lab state.
 
