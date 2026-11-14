@@ -26,7 +26,7 @@ def add(minutes: int, event_id: int, user: str, host: str, source: str, message:
         "Simulation": True,
     })
 
-# Six failed attempts, then one successful sign-in from the same fictional source.
+# Six failed attempts followed by a successful sign-in from the same fictional source.
 for m in (18, 16, 14, 12, 10, 8):
     add(m, 4625, "lab.user", "WIN-LAB01", "192.0.2.55", "Synthetic failed logon")
 add(6, 4624, "lab.user", "WIN-LAB01", "192.0.2.55", "Synthetic successful logon; investigate context")
@@ -45,7 +45,22 @@ with csv_path.open("w", newline="", encoding="utf-8") as handle:
     writer.writeheader()
     writer.writerows(events)
 
-print(f"Wrote {len(events)} synthetic events:")
+# Synthetic sshd lines use TEST-NET-2 documentation-only addressing.
+# Ingest this file as linux_secure (or syslog) to exercise the Linux SPL rule.
+linux_path = OUT / "synthetic-linux-auth.log"
+local_now = now.astimezone()
+linux_lines = []
+for minutes in (18, 16, 14, 12, 10, 8):
+    stamp = (local_now - timedelta(minutes=minutes)).strftime("%b %d %H:%M:%S")
+    linux_lines.append(
+        f"{stamp} UBUNTU-LAB sshd[2201]: Failed password for invalid user labdemo "
+        "from 198.51.100.23 port 40222 ssh2"
+    )
+linux_path.write_text("\n".join(linux_lines) + "\n", encoding="utf-8")
+
+print(f"Wrote {len(events)} synthetic Windows events:")
 print(f"  {json_path}")
 print(f"  {csv_path}")
+print(f"Wrote {len(linux_lines)} synthetic Linux SSH failures:")
+print(f"  {linux_path}")
 print("All identities, addresses, and events are fictional training data.")
