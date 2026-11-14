@@ -14,11 +14,11 @@ This record reflects checks performed on the attached Windows/WSL2 host. It sepa
 ## Not completed / evidence unavailable
 
 - Ubuntu WSL is connected and Active. This satisfies the Linux/Ubuntu endpoint requirement for this lab; it is specifically a WSL endpoint, not a separate VM.
-- No Windows Wazuh agent is registered. The current Windows account lacks Administrator elevation, required for the agent MSI and audit policy.
+- No Windows Wazuh agent is registered. The current Windows account lacks Administrator elevation, required for the agent MSI and audit policy. The attempt to launch the elevated installer was rejected by the command approval policy before execution.
 - Windows audit policy and event export have not been run.
 - Splunk detections, dashboard, positive/negative alert tests, and incident reports have not been validated against a running Splunk instance.
-- No genuine dashboard screenshot has been captured. The dashboard uses a self-signed TLS certificate and the available browser flow did not establish a trusted session.
-- No real Windows or Ubuntu VM telemetry evidence is available. Repository fixtures remain synthetic training data.
+- No genuine dashboard screenshot has been captured. The browser rejected the dashboard's self-signed certificate with ERR_CERT_AUTHORITY_INVALID; it was not bypassed.
+- No real Windows authentication event is available. Repository fixtures and the Wazuh SSH rule test are synthetic training data.
 
 ## Reproduction checks
 
@@ -35,7 +35,7 @@ The `-k` option was used only for this local self-signed lab endpoint check. It 
 
 ## Remaining environment gates
 
-1. Run an elevated Windows PowerShell session on a disposable Windows endpoint to install/enroll the Wazuh agent and enable the documented audit policy.
+1. Run [windows/Install-WazuhAgent.ps1](../windows/Install-WazuhAgent.ps1) from elevated PowerShell to install/enroll Windows and enable its documented audit policy. Then generate a benign failed logon and verify the event in Wazuh.
 2. Start Splunk from `SOC-Lab/splunk` after the operator reviews and accepts Splunk's license terms, then load fixtures and validate each search and alert.
 3. Capture screenshots from the trusted local lab UI and redact hostnames, usernames, credentials, and private addresses before publishing.
 
