@@ -70,9 +70,9 @@ From the repository root:
 python SOC-Lab/samples/generate_events.py
 ```
 
-The generator creates synthetic Windows JSON/CSV and a Linux SSH authentication log. All identities and addresses are fictional training data. Import the Windows file into a disposable index and configure timestamp/field extraction for EventCode, TargetUserName, IpAddress, and Computer. Ingest synthetic-linux-auth.log as linux_secure or syslog with timestamp extraction. If Splunk uses different field names, adapt [splunk/queries.spl](splunk/queries.spl).
+The generator creates synthetic Windows JSON/CSV and a Linux SSH authentication log. All identities and addresses are fictional training data. Import the Windows file into a disposable index and configure timestamp/field extraction for EventCode, TargetUserName, IpAddress, Computer, and LogonType. The fixture marks its successful 4624 event as LogonType 10 to exercise the remote interactive logon search. Ingest synthetic-linux-auth.log as linux_secure or syslog with timestamp extraction. If Splunk uses different field names, adapt [splunk/queries.spl](splunk/queries.spl).
 
-Run all eight searches individually. Record time range, result count, and field mapping changes. The Windows fixture includes failed and successful logons, account creation, group membership, PowerShell, and log clearing. The Linux fixture contains repeated SSH failures for testing the Linux rule. Synthetic events validate SPL behavior only; they do not validate endpoint collection or live telemetry.
+There are eight detection searches plus one dashboard panel search. Run each detection individually and record time range, result count, and field mapping changes. The Windows fixture includes failed and successful logons, account creation, group membership, PowerShell, and log clearing. The Linux fixture contains repeated SSH failures. Synthetic events validate SPL behavior only; they do not validate endpoint collection or live telemetry.
 
 Searches in [splunk/savedsearches.conf](splunk/savedsearches.conf) are disabled by default. Import only after verifying SPL and field extraction. Enable a scheduled alert only after a positive test returns the expected result and a benign negative test does not fire. For three alert examples, record test event, observed result, and time.
 
@@ -86,7 +86,7 @@ Minimum evidence:
 
 1. Wazuh agent inventory with both endpoints Active and a recent event from each.
 2. Windows audit policy verification and one sanitised event.
-3. Results for all eight SPL searches, including Linux authentication data for its rule.
+3. Results for all eight detections and the dashboard panel, including Linux authentication data.
 4. Three tested alerts with positive and negative results.
 5. ATT&CK rationale tied to observed events, confidence, and limitations.
 6. One incident report based on observed, sanitised lab evidence, with evidence IDs and analyst actions.
