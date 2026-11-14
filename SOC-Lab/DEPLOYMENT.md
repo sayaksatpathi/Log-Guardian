@@ -70,9 +70,9 @@ From the repository root:
 python SOC-Lab/samples/generate_events.py
 ```
 
-Generated identities and events are fictional practice data, not endpoint telemetry. Import CSV or JSON into a disposable index. Configure timestamps and extraction for fields such as EventCode, TargetUserName, IpAddress, and Computer. If Splunk extracts different names, adapt [splunk/queries.spl](splunk/queries.spl).
+The generator creates synthetic Windows JSON/CSV and a Linux SSH authentication log. All identities and addresses are fictional training data. Import the Windows file into a disposable index and configure timestamp/field extraction for EventCode, TargetUserName, IpAddress, and Computer. Ingest synthetic-linux-auth.log as linux_secure or syslog with timestamp extraction. If Splunk uses different field names, adapt [splunk/queries.spl](splunk/queries.spl).
 
-Run all eight searches individually. Record time range, result count, and field mapping changes. The synthetic data supports Windows logon, account creation, group membership, PowerShell, and log clearing searches. The Linux SSH detection requires Linux authentication events; Windows-only synthetic events cannot validate it.
+Run all eight searches individually. Record time range, result count, and field mapping changes. The Windows fixture includes failed and successful logons, account creation, group membership, PowerShell, and log clearing. The Linux fixture contains repeated SSH failures for testing the Linux rule. Synthetic events validate SPL behavior only; they do not validate endpoint collection or live telemetry.
 
 Searches in [splunk/savedsearches.conf](splunk/savedsearches.conf) are disabled by default. Import only after verifying SPL and field extraction. Enable a scheduled alert only after a positive test returns the expected result and a benign negative test does not fire. For three alert examples, record test event, observed result, and time.
 
