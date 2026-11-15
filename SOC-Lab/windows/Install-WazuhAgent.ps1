@@ -7,6 +7,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $version = '4.14.10-1'
+$agentName = "$env:COMPUTERNAME-Windows"
 $msi = Join-Path $env:TEMP "wazuh-agent-$version.msi"
 $log = Join-Path $env:TEMP "wazuh-agent-install.log"
 $url = "https://packages.wazuh.com/4.x/windows/wazuh-agent-$version.msi"
@@ -24,7 +25,7 @@ $installArgs = @(
     '/i', $msi, '/qn', '/norestart',
     "WAZUH_MANAGER=$ManagerAddress",
     "WAZUH_REGISTRATION_SERVER=$ManagerAddress",
-    "WAZUH_AGENT_NAME=$env:COMPUTERNAME",
+    "WAZUH_AGENT_NAME=$agentName",
     '/l*v', $log
 )
 $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList $installArgs -Wait -PassThru
@@ -45,3 +46,4 @@ if (-not $SkipAuditPolicy) {
 Get-Service -Name WazuhSvc | Format-Table Name, Status, StartType
 Write-Host "Installer log: $log"
 Write-Host "Next: confirm this computer appears Active in Wazuh, then export a bounded Security event window."
+
