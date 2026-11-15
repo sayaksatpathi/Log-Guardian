@@ -1,0 +1,112 @@
+[
+  {
+    "TimeCreated": "2026-11-15T06:12:22.190421+00:00",
+    "EventCode": 4625,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "192.0.2.55",
+    "LogonType": "",
+    "Message": "Synthetic failed logon",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:14:22.190421+00:00",
+    "EventCode": 4625,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "192.0.2.55",
+    "LogonType": "",
+    "Message": "Synthetic failed logon",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:16:22.190421+00:00",
+    "EventCode": 4625,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "192.0.2.55",
+    "LogonType": "",
+    "Message": "Synthetic failed logon",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:18:22.190421+00:00",
+    "EventCode": 4625,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "192.0.2.55",
+    "LogonType": "",
+    "Message": "Synthetic failed logon",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:20:22.190421+00:00",
+    "EventCode": 4625,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "192.0.2.55",
+    "LogonType": "",
+    "Message": "Synthetic failed logon",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:22:22.190421+00:00",
+    "EventCode": 4625,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "192.0.2.55",
+    "LogonType": "",
+    "Message": "Synthetic failed logon",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:24:22.190421+00:00",
+    "EventCode": 4624,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "192.0.2.55",
+    "LogonType": 10,
+    "Message": "Synthetic successful remote interactive logon",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:25:22.190421+00:00",
+    "EventCode": 4720,
+    "TargetUserName": "new.labuser",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "127.0.0.1",
+    "LogonType": "",
+    "Message": "Synthetic account creation",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:26:22.190421+00:00",
+    "EventCode": 4732,
+    "TargetUserName": "new.labuser",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "127.0.0.1",
+    "LogonType": "",
+    "Message": "Synthetic local group membership change",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:27:22.190421+00:00",
+    "EventCode": 4104,
+    "TargetUserName": "lab.user",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "127.0.0.1",
+    "LogonType": "",
+    "Message": "Synthetic PowerShell script block event",
+    "Simulation": true
+  },
+  {
+    "TimeCreated": "2026-11-15T06:28:22.190421+00:00",
+    "EventCode": 1102,
+    "TargetUserName": "lab.admin",
+    "Computer": "WIN-LAB01",
+    "IpAddress": "127.0.0.1",
+    "LogonType": "",
+    "Message": "Synthetic audit log cleared event",
+    "Simulation": true
+  }
+]
