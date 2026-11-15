@@ -4,7 +4,7 @@ This runbook makes deployment and validation repeatable. It does not claim softw
 
 ## Current execution status
 
-A host-side validation record is maintained at [evidence/live-validation-2026-11-14.md](evidence/live-validation-2026-11-14.md). At an earlier check, Wazuh manager/indexer/dashboard were running in Docker under WSL2, the dashboard returned HTTP 302 from inside WSL, and the Ubuntu WSL agent was Active. Docker was restored after the operator-authorized Ubuntu WSL restart, and the transient `vm.max_map_count=262144` setting was reapplied. Windows `curl` now receives HTTP 302 at the dashboard endpoint and the WSL agent is Active again. Refresh the browser; the self-signed certificate still requires user handling. Ubuntu WSL is the lab's Ubuntu endpoint, so this satisfies the Ubuntu-agent requirement. The synthetic SSH failure was decoded by Wazuh rule 5710 using wazuh-logtest, but a forwarded alert was not confirmed. There is no Windows agent yet; the attached Windows account is non-administrator. Splunk searches have not been run. The completion checklist below remains evidence-gated.
+Current live checks and the WSL shutdown fix are recorded in [evidence/live-validation-2026-11-15.md](evidence/live-validation-2026-11-15.md). Ubuntu WSL now stays running while idle; Docker and Wazuh are active, Windows localhost receives HTTP 302 from the dashboard, and the Ubuntu WSL agent is Active. The browser still needs to reach the local dashboard and handle its self-signed certificate. Ubuntu WSL counts as the Ubuntu endpoint. A synthetic SSH failure matched Wazuh rule 5710 in wazuh-logtest, but a forwarded alert is not yet confirmed. Windows agent/audit validation and Splunk search/alert validation remain incomplete.
 
 ## Requirements and topology
 
@@ -22,6 +22,17 @@ sudo bash ./wazuh-install.sh -a
 ```
 
 The assistant prints the dashboard URL and credentials. Save them privately. Never commit the generated password archive. Open the dashboard from the isolated network. Follow vendor guidance for its first-login certificate; do not bypass certificate warnings on public services. If the documented release changes, use the version and URL shown by current official docs.
+
+## Keep the Ubuntu WSL lab available
+
+WSL stops an idle distro by default. For this Docker lab, that stops the published dashboard port and causes Windows to report `ERR_CONNECTION_REFUSED`. On this host, the persistent fix is in the Windows user profile file `%UserProfile%\\.wslconfig`:
+
+```ini
+[general]
+instanceIdleTimeout=-1
+```
+
+This global WSL2 setting disables distro idle auto-shutdown. Apply it by running `wsl --shutdown`, then start Ubuntu again. Docker is enabled under systemd and the lab containers have restart policies. The setting leaves the WSL distro and its services running while idle, so WSL continues using resources. See [Microsoft's WSL configuration reference](https://learn.microsoft.com/en-us/windows/wsl/wsl-config).
 
 ## 2. Enrol Windows and Ubuntu agents
 
