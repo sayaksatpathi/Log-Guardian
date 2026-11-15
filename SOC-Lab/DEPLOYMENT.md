@@ -1,10 +1,12 @@
 # SOC Lab deployment runbook
 
-This runbook makes deployment and validation repeatable. It does not claim software is installed or live telemetry validated. Use disposable VMs and systems you own or are authorised to monitor.
+This runbook makes deployment and validation repeatable. Use disposable VMs and systems you own or are authorised to monitor.
 
 ## Current execution status
 
-Current live checks and the WSL shutdown fix are recorded in [evidence/live-validation-2026-11-15.md](evidence/live-validation-2026-11-15.md). Ubuntu WSL now stays running while idle; Docker and Wazuh are active, Windows localhost receives HTTP 302 from the dashboard, and the Ubuntu WSL agent is Active. The browser still needs to reach the local dashboard and handle its self-signed certificate. Ubuntu WSL counts as the Ubuntu endpoint. A synthetic SSH failure matched Wazuh rule 5710 in wazuh-logtest, but a forwarded alert is not yet confirmed. Windows agent/audit validation and Splunk search/alert validation remain incomplete.
+Live deployment and evidence are recorded in [evidence/live-validation-2026-11-15.md](evidence/live-validation-2026-11-15.md). Wazuh runs in Ubuntu WSL; its dashboard responds on Windows localhost (HTTP 302), and API calls authenticate. Wazuh manager, Ubuntu WSL agent, and Windows agent are Active. Windows process-creation alerts and a synthetic Linux SSH failure have reached the Wazuh index. The Linux test is synthetic training data, not an intrusion.
+
+Outstanding gates: the browser requires the operator to decide whether to trust the local self-signed certificate before a genuine dashboard screenshot can be captured; Windows audit policy needs a recorded readback and sanitised export; Splunk searches/alerts need a running Splunk instance after the operator personally accepts its current terms. Do not report these as complete before evidence exists.
 
 ## Requirements and topology
 
@@ -21,7 +23,7 @@ curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
 sudo bash ./wazuh-install.sh -a
 ```
 
-The assistant prints the dashboard URL and credentials. Save them privately. Never commit the generated password archive. Open the dashboard from the isolated network. Follow vendor guidance for its first-login certificate; do not bypass certificate warnings on public services. If the documented release changes, use the version and URL shown by current official docs.
+The assistant prints the dashboard URL and credentials. Save them privately. Never commit the generated password archive. The dashboard API is healthy in this WSL lab, and Windows localhost returns HTTP 302. The browser presents a local self-signed certificate warning; decide whether to trust it before continuing. Never bypass certificate warnings on public services.
 
 ## Keep the Ubuntu WSL lab available
 
@@ -38,12 +40,12 @@ This global WSL2 setting disables distro idle auto-shutdown. Apply it by running
 
 In Wazuh select **Agents management → Summary → Deploy new agent**. Choose the endpoint OS and copy the generated commands for your manager. Do not put environment-specific keys or passwords in this repository.
 
-- Windows: run the official MSI installation command in elevated PowerShell on the disposable VM and start the Wazuh service. See [Windows agent deployment](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-windows.html).
-- Ubuntu: install from the official Wazuh APT repository with the manager address, then enable and start wazuh-agent. See [Linux agent deployment](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-linux.html).
+- Windows: the provided installer script installed the official Wazuh MSI in elevated PowerShell. The service is running and the manager reports agent ID 002 Active. See [Windows agent deployment](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-windows.html).
+- Ubuntu WSL: agent ID 001 is Active. See [Linux agent deployment](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-linux.html).
 
 Use [wazuh/agent-ossec.conf](wazuh/agent-ossec.conf) only as a reference. Merge relevant log collection blocks into each endpoint's existing configuration; do not replace the full config. Windows channels belong on Windows; Linux file paths belong on Ubuntu. Confirm paths exist.
 
-**Pass condition:** both agents show **Active**. Generate a benign test event on each and confirm it appears with the correct agent name and timestamp. An installed service alone does not pass.
+**Pass condition:** both agents show **Active** and a timestamped event from each appears under the correct agent. This was observed: Windows process-creation alerts (rule 67027) were indexed from agent 002; a synthetic SSH failure matched rule 5710 and was indexed from agent 001. Details and limitations are in the live validation record.
 
 ## 3. Windows audit policy and event export
 
@@ -56,20 +58,20 @@ auditpol /get /category:*
 For process command-line capture, use the local policy path printed by the script. Command lines can contain secrets. Export a bounded event window:
 
 ```powershell
-.\windows\Export-SecurityEvents.ps1 -HoursBack 2 -OutputDirectory .\evidence-private
+.\\windows\\Export-SecurityEvents.ps1 -HoursBack 2 -OutputDirectory .\\evidence-private
 ```
 
-The export contains sensitive event data and XML. Keep it local and sanitise a copy before sharing. Never commit raw Security.evtx or unredacted exports.
+The export contains sensitive event data and XML. Keep it local and sanitise a copy before sharing. Never commit raw Security.evtx or unredacted exports. The installer invoked the audit setup, but a successful readback and reviewed export are still outstanding.
 
 ## 4. Start Splunk
 
 Before startup, the operator must read and accept Splunk's current [General Terms](https://www.splunk.com/en_us/legal/splunk-general-terms.html) and applicable [software license agreement](https://www.splunk.com/en_us/legal/splunk-software-license-agreement-bah.html). Splunk 10.x Docker startup requires flags that explicitly represent that acceptance; they are intentionally commented out in `.env.example`. Do not enable them unless you personally accept the terms.
 
-The compose file maps Splunk Web to `http://localhost:18000` because port 8000 was already occupied on the validated host. Other ports are loopback-bound. From SOC-Lab/splunk:
+The compose file maps Splunk Web to `http://localhost:18000`; other ports are loopback-bound. From SOC-Lab/splunk:
 
 ```bash
 cp .env.example .env
-# Replace SPLUNK_PASSWORD with a strong unique password; keep .env private.
+# Replace SPLUNK_PASSWORD with a strong unique value; keep .env private.
 docker compose up -d
 docker compose ps
 docker compose logs -f splunk
@@ -77,7 +79,7 @@ docker compose logs -f splunk
 
 Open http://localhost:18000 and sign in as admin. Initial startup may take several minutes. Compose ports bind to loopback by default. For endpoints in separate VMs, deliberately configure a reachable host-only interface and firewall rule; do not bind management or receiving ports publicly.
 
-Stop without deleting data using docker compose down. Removing volumes with docker compose down -v permanently deletes Splunk lab state.
+Stop without deleting data using `docker compose down`. Removing volumes with `docker compose down -v` permanently deletes Splunk lab state. No Splunk container has been started and no SPL runtime result has been claimed.
 
 ## 5. Import and validate synthetic events
 
@@ -110,11 +112,13 @@ Minimum evidence:
 
 ## Completion gate
 
-- [ ] Wazuh dashboard reachable on isolated lab network
-- [ ] Windows and Ubuntu agents both Active
-- [ ] Timestamped event from each agent visible in Wazuh
-- [ ] Windows audit policy verified and bounded export reviewed
-- [ ] Splunk running with private credentials and imported data
+- [x] Wazuh deployed in Ubuntu WSL; manager, indexer, and dashboard services running
+- [x] Windows and Ubuntu WSL agents both Active
+- [x] Timestamped Windows and Ubuntu agent alerts indexed in Wazuh (Linux event is synthetic)
+- [ ] Browser dashboard screenshot after operator handles the local certificate warning
+- [ ] Windows audit policy readback and bounded export reviewed
+- [ ] Splunk terms personally accepted by the operator; runtime not started pending this
+- [ ] Splunk running with private credentials and imported synthetic data
 - [ ] Eight SPL detections tested against suitable positive data
 - [ ] Benign negative test completed for each alert
 - [ ] Three alerts tested and documented
@@ -122,4 +126,4 @@ Minimum evidence:
 - [ ] One report completed using observed, sanitised lab evidence
 - [ ] Genuine screenshots captured and redacted
 
-Keep this checklist open until each item has evidence from the running environment.
+Keep unchecked items open until each has evidence from the running environment.
