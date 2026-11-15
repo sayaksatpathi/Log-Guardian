@@ -33,6 +33,18 @@ if ($process.ExitCode -notin 0, 3010) {
     throw "Wazuh MSI failed with exit code $($process.ExitCode). Installer log: $log"
 }
 
+if ((Get-Service -Name WazuhSvc).Status -eq 'Running') {
+    Stop-Service -Name WazuhSvc -Force
+}
+$agentConfigPath = Join-Path ${env:ProgramFiles(x86)} 'ossec-agent\ossec.conf'
+[xml]$agentConfig = Get-Content -LiteralPath $agentConfigPath
+$agentNameNode = $agentConfig.SelectSingleNode('/ossec_config/client/enrollment/agent_name')
+if (-not $agentNameNode) {
+    throw "Could not find the agent enrollment name in $agentConfigPath"
+}
+$agentNameNode.InnerText = $agentName
+$agentConfig.Save($agentConfigPath)
+
 Set-Service -Name WazuhSvc -StartupType Automatic
 Start-Service -Name WazuhSvc
 if (-not $SkipAuditPolicy) {
