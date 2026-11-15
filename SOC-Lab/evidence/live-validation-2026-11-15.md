@@ -22,7 +22,7 @@ The Windows MSI installed successfully; WazuhSvc is running and the agent enroll
 - Windows agent ID 002 produced process-creation alerts (rule 67027) that were indexed in `wazuh-alerts-*`. This confirms Windows telemetry reached the manager and indexer.
 - The operator opened the Wazuh dashboard in Edge after handling the local certificate prompt and supplied two genuine Overview screenshots. They are archived as [overview](screenshots/wazuh-overview-2026-11-15.png) and [lower panels](screenshots/wazuh-overview-lower-panels-2026-11-15.png). The Overview shows 2 active endpoints, 0 disconnected, and the last-24-hour alert summary. Screenshots are original and not redacted; review visible local/API identifiers before wider portfolio sharing.
 - An elevated `auditpol /get /category:*` readback succeeded. Logon and Process Creation auditing show Success and Failure enabled. The full readback is stored privately in the Windows user's LocalAppData, not in GitHub.
-- A two-hour Windows event export completed: 5,406 records across selected Security and PowerShell event IDs. The CSV/JSON originals are stored outside the repository in the Windows user's LocalAppData; the export directory ACL grants Full Control only to that user and SYSTEM. Only record counts and event-ID categories were inspected; raw event contents were not copied to GitHub. The export still needs analyst review and a redacted portfolio sample.
+- A two-hour Windows event export completed: 5,406 records across selected Security and PowerShell event IDs. The CSV/JSON originals are stored outside the repository in the Windows user's LocalAppData; the export directory ACL grants Full Control only to that user and SYSTEM. Only record counts and event-ID categories were inspected; raw event contents were not copied to GitHub. The aggregate is published in [the sanitised summary](windows-event-export-summary-2026-11-15.md). Detailed event triage remains pending.
 
 ## Splunk status
 
@@ -31,7 +31,7 @@ Splunk compose configuration passed `docker compose config --quiet` using an ign
 ## Remaining evidence
 
 1. Review and redact visible browser/API identifiers before wider portfolio sharing.
-2. Review the private two-hour export locally and create only a sanitised portfolio sample if useful.
+2. Review the private two-hour export locally for event context, then redact any selected example before sharing.
 3. Operator accepts applicable Splunk terms, then start Splunk, import fixtures, and test each search with positive and negative cases.
 4. Capture genuine Splunk results and document tested alerts.
 

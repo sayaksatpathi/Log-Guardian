@@ -118,7 +118,8 @@ Minimum evidence:
 - [x] Genuine Wazuh Overview screenshots archived in evidence/screenshots (operator-provided; not redacted)
 - [x] Windows audit policy readback verified (Logon and Process Creation: Success and Failure)
 - [x] Bounded Windows event export completed and stored with user/SYSTEM-only ACL
-- [ ] Review raw Windows export locally and prepare sanitised portfolio evidence
+- [x] Sanitised aggregate summary generated from event IDs/counts only
+- [ ] Analyst review raw Windows event details locally; redact any selected examples
 - [ ] Redact screenshot/browser identifiers before broader portfolio sharing
 - [ ] Splunk terms personally accepted by the operator; runtime not started pending this
 - [ ] Splunk running with private credentials and imported synthetic data
