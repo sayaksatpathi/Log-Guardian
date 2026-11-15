@@ -6,7 +6,7 @@ This runbook makes deployment and validation repeatable. Use disposable VMs and 
 
 Live deployment and evidence are recorded in [evidence/live-validation-2026-11-15.md](evidence/live-validation-2026-11-15.md). Wazuh runs in Ubuntu WSL; its dashboard responds on Windows localhost (HTTP 302), and API calls authenticate. Wazuh manager, Ubuntu WSL agent, and Windows agent are Active. Windows process-creation alerts and a synthetic Linux SSH failure have reached the Wazuh index. The Linux test is synthetic training data, not an intrusion.
 
-Outstanding gates: the browser requires the operator to decide whether to trust the local self-signed certificate before a genuine dashboard screenshot can be captured; Windows audit policy needs a recorded readback and sanitised export; Splunk searches/alerts need a running Splunk instance after the operator personally accepts its current terms. Do not report these as complete before evidence exists.
+Outstanding gates: the browser requires the operator to decide whether to trust the local self-signed certificate before a genuine dashboard screenshot can be captured; Windows audit policy readback is verified; a sanitised event export is still pending; Splunk searches/alerts need a running Splunk instance after the operator personally accepts its current terms. Do not report these as complete before evidence exists.
 
 ## Requirements and topology
 
@@ -61,7 +61,7 @@ For process command-line capture, use the local policy path printed by the scrip
 .\\windows\\Export-SecurityEvents.ps1 -HoursBack 2 -OutputDirectory .\\evidence-private
 ```
 
-The export contains sensitive event data and XML. Keep it local and sanitise a copy before sharing. Never commit raw Security.evtx or unredacted exports. The installer invoked the audit setup, but a successful readback and reviewed export are still outstanding.
+The export contains sensitive event data and XML. Keep it local and sanitise a copy before sharing. Never commit raw Security.evtx or unredacted exports. An elevated `auditpol /get /category:*` readback succeeded; Logon and Process Creation show Success and Failure enabled. A two-hour event export is running in the Windows user's private LocalAppData and remains unreviewed.
 
 ## 4. Start Splunk
 
@@ -116,7 +116,8 @@ Minimum evidence:
 - [x] Windows and Ubuntu WSL agents both Active
 - [x] Timestamped Windows and Ubuntu agent alerts indexed in Wazuh (Linux event is synthetic)
 - [ ] Browser dashboard screenshot after operator handles the local certificate warning
-- [ ] Windows audit policy readback and bounded export reviewed
+- [x] Windows audit policy readback verified (Logon and Process Creation: Success and Failure)
+- [ ] Bounded Windows event export completed and reviewed locally
 - [ ] Splunk terms personally accepted by the operator; runtime not started pending this
 - [ ] Splunk running with private credentials and imported synthetic data
 - [ ] Eight SPL detections tested against suitable positive data
