@@ -6,7 +6,7 @@ This runbook makes deployment and validation repeatable. Use disposable VMs and 
 
 Live deployment and evidence are recorded in [evidence/live-validation-2026-11-15.md](evidence/live-validation-2026-11-15.md). Wazuh runs in Ubuntu WSL; its dashboard responds on Windows localhost (HTTP 302), and API calls authenticate. Wazuh manager, Ubuntu WSL agent, and Windows agent are Active. Windows process-creation alerts and a synthetic Linux SSH failure have reached the Wazuh index. The Linux test is synthetic training data, not an intrusion.
 
-Outstanding gates: the browser requires the operator to decide whether to trust the local self-signed certificate before a genuine dashboard screenshot can be captured; Windows audit policy readback is verified; a private bounded export completed; sanitised review is still pending; Splunk searches/alerts need a running Splunk instance after the operator personally accepts its current terms. Do not report these as complete before evidence exists.
+The Wazuh dashboard is open in Edge. The operator supplied two genuine Overview screenshots, archived in [evidence/screenshots](evidence/screenshots/). They show 2 active endpoints and the dashboard panels. Windows audit policy readback and private event export are complete; sanitised review remains open. Splunk searches/alerts still need a runtime after the operator personally accepts the current terms.
 
 ## Requirements and topology
 
@@ -115,10 +115,11 @@ Minimum evidence:
 - [x] Wazuh deployed in Ubuntu WSL; manager, indexer, and dashboard services running
 - [x] Windows and Ubuntu WSL agents both Active
 - [x] Timestamped Windows and Ubuntu agent alerts indexed in Wazuh (Linux event is synthetic)
-- [ ] Browser dashboard screenshot after operator handles the local certificate warning
+- [x] Genuine Wazuh Overview screenshots archived in evidence/screenshots (operator-provided; not redacted)
 - [x] Windows audit policy readback verified (Logon and Process Creation: Success and Failure)
 - [x] Bounded Windows event export completed and stored with user/SYSTEM-only ACL
-- [ ] Review raw export locally and prepare sanitised portfolio evidence
+- [ ] Review raw Windows export locally and prepare sanitised portfolio evidence
+- [ ] Redact screenshot/browser identifiers before broader portfolio sharing
 - [ ] Splunk terms personally accepted by the operator; runtime not started pending this
 - [ ] Splunk running with private credentials and imported synthetic data
 - [ ] Eight SPL detections tested against suitable positive data
