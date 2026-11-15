@@ -7,6 +7,7 @@ services:
     environment:
       SPLUNK_START_ARGS: ${SPLUNK_START_ARGS:-}
       SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:?Set SPLUNK_PASSWORD in SOC-Lab/splunk/.env}
+      SPLUNK_LICENSE_URI: ${SPLUNK_LICENSE_URI:-Free}
       SPLUNK_GENERAL_TERMS: ${SPLUNK_GENERAL_TERMS:-}
     ports:
       - "127.0.0.1:18000:8000"
