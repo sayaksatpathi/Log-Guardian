@@ -6,7 +6,7 @@ This runbook makes deployment and validation repeatable. Use disposable VMs and 
 
 Live deployment and evidence are recorded in [evidence/live-validation-2026-11-15.md](evidence/live-validation-2026-11-15.md). Wazuh runs in Ubuntu WSL; its dashboard responds on Windows localhost (HTTP 302), and API calls authenticate. Wazuh manager, Ubuntu WSL agent, and Windows agent are Active. Windows process-creation alerts and a synthetic Linux SSH failure have reached the Wazuh index. The Linux test is synthetic training data, not an intrusion.
 
-The Wazuh dashboard is open in Edge. The operator supplied two genuine Overview screenshots, archived in [evidence/screenshots](evidence/screenshots/). They show 2 active endpoints and the dashboard panels. Windows audit policy readback and private event export are complete; sanitised review remains open. Splunk searches/alerts still need a runtime after the operator personally accepts the current terms.
+The Wazuh dashboard is open in Edge. The operator supplied two genuine Overview screenshots, archived in [evidence/screenshots](evidence/screenshots/). They show 2 active endpoints and the dashboard panels. Windows audit policy readback and private event export are complete; sanitised review remains open. The Splunk compose file now selects the local Splunk Free license by default; no Splunk Cloud or container has been started.
 
 ## Requirements and topology
 
@@ -65,7 +65,9 @@ The export contains sensitive event data and XML. Keep it local and sanitise a c
 
 ## 4. Start Splunk
 
-Before startup, the operator must read and accept Splunk's current [General Terms](https://www.splunk.com/en_us/legal/splunk-general-terms.html) and applicable [software license agreement](https://www.splunk.com/en_us/legal/splunk-software-license-agreement-bah.html). Splunk 10.x Docker startup requires flags that explicitly represent that acceptance; they are intentionally commented out in `.env.example`. Do not enable them unless you personally accept the terms.
+This lab uses a local, standalone Splunk Free license (`SPLUNK_LICENSE_URI=Free`), not Splunk Cloud. Splunk documents Free as non-expiring with a 500 MB/day limit; scheduled alerting is unavailable, so this phase tests searches and dashboards while Wazuh remains responsible for alert validation. See [Splunk Free limits](https://help.splunk.com/en/data-management/splunk-enterprise-admin-manual/10.6/configure-splunk-licenses/about-splunk-free) and [the Docker Free-license example](https://github.com/splunk/docker-splunk/blob/develop/docs/EXAMPLES.md).
+
+Before startup, the operator must read and personally accept Splunk's current [General Terms](https://www.splunk.com/en_us/legal/splunk-general-terms.html) and applicable [software license agreement](https://www.splunk.com/en_us/legal/splunk-software-license-agreement-bah.html). Splunk 10.x Docker startup requires flags that explicitly represent that acceptance; they remain commented out in `.env.example`. Do not enable them unless you personally accept the terms.
 
 The compose file maps Splunk Web to `http://localhost:18000`; other ports are loopback-bound. From SOC-Lab/splunk:
 
@@ -121,7 +123,8 @@ Minimum evidence:
 - [x] Sanitised aggregate summary generated from event IDs/counts only
 - [ ] Analyst review raw Windows event details locally; redact any selected examples
 - [ ] Redact screenshot/browser identifiers before broader portfolio sharing
-- [ ] Splunk terms personally accepted by the operator; runtime not started pending this
+- [ ] Operator personally accepts the applicable Splunk terms
+- [ ] Local Splunk Free container started and synthetic data imported after acceptance
 - [ ] Splunk running with private credentials and imported synthetic data
 - [ ] Eight SPL detections tested against suitable positive data
 - [ ] Benign negative test completed for each alert
