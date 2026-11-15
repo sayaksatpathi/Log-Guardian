@@ -21,16 +21,17 @@ The Windows MSI installed successfully; WazuhSvc is running and the agent enroll
 - A synthetic Linux SSH failure using reserved TEST-NET-2 address `198.51.100.23` and fictional user `labdemo` was written to the configured WSL auth test log. Wazuh rule 5710 matched it in `wazuh-logtest`, and the alert was forwarded by agent 001 and indexed in `wazuh-alerts-*`. This validates the pipeline with synthetic data; it is not a real intrusion.
 - Windows agent ID 002 produced process-creation alerts (rule 67027) that were indexed in `wazuh-alerts-*`. This confirms Windows telemetry reached the manager and indexer.
 - The host dashboard URL and API were checked from command line. The browser still displays a certificate authority warning for the local self-signed certificate. No browser bypass was automated and no genuine UI screenshot has been captured.
-- Windows audit policy changes were invoked by the elevated installer, but a successful `auditpol /get` readback has not been recorded. Treat the policy verification and bounded event export as outstanding until captured.
+- An elevated `auditpol /get /category:*` readback succeeded. Logon and Process Creation auditing show Success and Failure enabled. The full readback is stored privately in the Windows user's LocalAppData, not in GitHub.
+- A two-hour Windows event export is running into a private LocalAppData directory. It has not completed or been reviewed, so the export/review gate remains open.
 
 ## Splunk status
 
-Splunk compose configuration and synthetic data fixtures are in the repository. Splunk has not been started, its searches/alerts have not been run in a Splunk runtime, and no license or General Terms acceptance is recorded. The operator must personally review and accept Splunk's applicable terms before startup; see [SOC-Lab/DEPLOYMENT.md](../DEPLOYMENT.md).
+Splunk compose configuration passed `docker compose config --quiet` using an ignored local `.env`. The local secret is protected by a Windows ACL granting Full Control only to the current user and SYSTEM; the value is not in GitHub. The container was not started, and no license or General Terms acceptance is recorded. Splunk searches/alerts remain untested until the operator personally reviews and accepts applicable terms; see [SOC-Lab/DEPLOYMENT.md](../DEPLOYMENT.md).
 
 ## Remaining evidence
 
 1. Operator handles the browser's local certificate warning, then capture a genuine Wazuh inventory/event screenshot with sensitive details redacted.
-2. Verify Windows audit policy via elevated `auditpol /get /category:*` and capture a bounded, sanitised event export.
+2. Let the two-hour event export finish, inspect it locally, and create only a sanitised summary if useful.
 3. Operator accepts applicable Splunk terms, then start Splunk, import fixtures, and test each search with positive and negative cases.
 4. Capture genuine Splunk results and document tested alerts.
 
